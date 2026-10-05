@@ -10,6 +10,16 @@ using FixMyCampus.Api.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AngularClient", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 builder.Services.AddScoped<TicketStatusService>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
@@ -159,7 +169,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("AngularClient");
 app.UseAuthentication();
 
 app.UseAuthorization();

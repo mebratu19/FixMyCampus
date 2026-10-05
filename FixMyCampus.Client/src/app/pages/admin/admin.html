@@ -1,0 +1,264 @@
+<div class="admin-page">
+
+  <header class="topbar">
+    <div>
+      <h1>FixMyCampus</h1>
+      <p>Admin Dashboard</p>
+    </div>
+
+    <div class="admin-user">
+      <span>🛡️</span>
+      <div>
+        <strong>Administrator</strong>
+        <small>Admin</small>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard">
+
+    <section class="welcome">
+      <div>
+        <h2>Campus Issues</h2>
+        <p>Monitor and manage reported campus problems.</p>
+      </div>
+
+      <button class="refresh-btn" (click)="loadDashboard()">
+        ↻ Refresh
+      </button>
+    </section>
+
+    @if (loading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading dashboard...</p>
+      </div>
+    }
+
+    @if (error) {
+      <div class="error-state">
+        <strong>Unable to load dashboard</strong>
+        <p>{{ error }}</p>
+
+        <button (click)="loadDashboard()">
+          Try Again
+        </button>
+      </div>
+    }
+
+    @if (dashboard && !error) {
+
+      <section class="stats">
+
+        <div class="stat-card">
+          <div class="stat-icon blue">🎫</div>
+
+          <div>
+            <span>Total Open Tickets</span>
+            <strong>{{ dashboard.totalOpenTickets }}</strong>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orange">🆕</div>
+
+          <div>
+            <span>New</span>
+            <strong>{{ getStatusCount('New') }}</strong>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon purple">🔧</div>
+
+          <div>
+            <span>In Progress</span>
+            <strong>{{ getStatusCount('In Progress') }}</strong>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">👷</div>
+
+          <div>
+            <span>Assigned</span>
+            <strong>{{ getStatusCount('Assigned') }}</strong>
+          </div>
+        </div>
+
+      </section>
+
+      <section class="tickets-section">
+
+        <div class="section-header">
+
+          <div>
+            <h2>Open Tickets</h2>
+            <p>Manage reported campus issues</p>
+          </div>
+
+          <div class="filters">
+
+            <select [(ngModel)]="selectedBuilding">
+  <option value="">All Buildings</option>
+
+              @for (building of dashboard.buildingCounts; track building.building) {
+                <option [value]="building.building">
+                  {{ building.building }}
+                </option>
+              }
+
+            </select>
+
+            <select [(ngModel)]="selectedStatus">
+  <option value="">All Statuses</option>
+              <option value="New">New</option>
+              <option value="Assigned">Assigned</option>
+              <option value="In Progress">In Progress</option>
+            </select>
+
+          </div>
+
+        </div>
+
+        @if (dashboard.openTickets.length > 0) {
+
+          <div class="table-wrapper">
+
+            <table>
+
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Issue</th>
+                  <th>Location</th>
+                  <th>Reporter</th>
+                  <th>Technician</th>
+                  <th>Urgency</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                @for (ticket of filteredTickets; track ticket.id) {
+
+                  <tr>
+
+                    <td>
+                      <strong>#{{ ticket.id }}</strong>
+                    </td>
+
+                    <td>
+                      <strong>{{ ticket.category }}</strong>
+                      <small>{{ ticket.description }}</small>
+                    </td>
+
+                    <td>
+                      <strong>{{ ticket.building }}</strong>
+                      <small>{{ ticket.room }}</small>
+                    </td>
+
+                    <td>
+                      {{ ticket.reporterName }}
+                    </td>
+
+                    <td>
+
+  @if (ticket.technicianName) {
+
+    <strong>
+      {{ ticket.technicianName }}
+    </strong>
+
+  } @else {
+
+    <select
+      #technician
+      (change)="assignTicket(ticket.id, technician.value)"
+    >
+      <option value="">
+        Assign technician
+      </option>
+
+      <option value="Campus Technician">
+        Campus Technician
+      </option>
+    </select>
+
+  }
+
+</td>
+
+                    <td>
+
+                      <span
+                        class="urgency"
+                        [class.high]="ticket.urgency === 'High'"
+                        [class.medium]="ticket.urgency === 'Medium'"
+                        [class.low]="ticket.urgency === 'Low'"
+                      >
+                        {{ ticket.urgency }}
+                      </span>
+
+                    </td>
+
+                    <td>
+
+  <select
+    [value]="ticket.status"
+    (change)="updateTicketStatus(ticket.id, $any($event.target).value)"
+  >
+
+    @if (ticket.status === 'New') {
+  <option value="New">New</option>
+  <option value="Assigned">Assigned</option>
+}
+
+    @if (ticket.status === 'Assigned') {
+      <option value="Assigned">Assigned</option>
+      <option value="In Progress">In Progress</option>
+    }
+
+    @if (ticket.status === 'In Progress') {
+      <option value="In Progress">In Progress</option>
+      <option value="Resolved">Resolved</option>
+    }
+
+  </select>
+
+</td>
+
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        } @else {
+
+          <div class="empty-state">
+
+            <div class="empty-icon">🎫</div>
+
+            <h3>No open tickets</h3>
+
+            <p>
+              There are currently no unresolved campus issues.
+            </p>
+
+          </div>
+
+        }
+
+      </section>
+
+    }
+
+  </main>
+
+</div>
